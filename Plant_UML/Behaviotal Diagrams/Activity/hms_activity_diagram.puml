@@ -1,0 +1,74 @@
+@startuml HMS_Activity_Diagram
+skinparam activity {
+  BackgroundColor #F5F9FF
+  BorderColor #2E74B5
+  FontColor #1F3864
+  DiamondBackgroundColor #DDEBF7
+  DiamondBorderColor #2E74B5
+}
+
+start
+:Patient arrives / calls to book;
+
+if (Existing patient?) then (yes)
+  :Search patient by UHID/phone;
+else (no)
+  :Register new patient\n(create UHID);
+endif
+
+:Book appointment with department/doctor;
+:System sends confirmation notification;
+
+note right: Time passes until the scheduled visit day
+
+:Patient checks in at front desk;
+:Generate queue token;
+:Patient waits in queue;
+
+:Doctor calls patient for consultation;
+:Doctor records vitals, complaints, diagnosis (EHR);
+
+if (Lab test required?) then (yes)
+  :Doctor places lab order;
+  :Lab technician collects sample;
+  :Lab technician enters results;
+  :System flags abnormal results;
+  :Result linked back to patient EHR;
+  :Doctor reviews lab results;
+else (no)
+endif
+
+if (Prescription needed?) then (yes)
+  :Doctor writes prescription;
+  :Check drug interaction warnings;
+  :Patient goes to pharmacy;
+  :Pharmacist dispenses medicine;
+  :Inventory stock auto-deducted;
+else (no)
+endif
+
+if (Admission required?) then (yes)
+  :Allocate bed / ward;
+  :Admit patient (ADT workflow);
+  :Nursing charting during stay;
+  :Doctor decides discharge;
+  :Generate discharge summary;
+  :Release bed;
+else (no)
+endif
+
+:Billing staff generates invoice\n(consultation + lab + pharmacy + room charges);
+
+if (Insurance covered?) then (yes)
+  :Submit insurance/TPA claim;
+  :Track claim status;
+else (no)
+endif
+
+:Patient makes payment;
+:Payment recorded, invoice marked paid;
+:System sends receipt notification;
+
+stop
+
+@enduml

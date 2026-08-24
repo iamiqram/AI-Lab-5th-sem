@@ -1,0 +1,138 @@
+@startuml HMS_Structural_Diagram
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam package {
+  BackgroundColor #F5F9FF
+  BorderColor #2E74B5
+  FontColor #1F3864
+}
+
+package "Presentation Layer" {
+  [Web App - Admin Portal]
+  [Web App - Clinical Console]
+  [Web App - Front Desk]
+  [Patient Portal (Phase 2)]
+}
+
+package "API Gateway / Auth Layer" {
+  [API Gateway]
+  [Auth & RBAC Service]
+}
+
+package "Core Domain Modules" {
+
+  package "Patient Management" {
+    [Patient Registration]
+    [Patient Search & UHID]
+  }
+
+  package "Scheduling" {
+    [Appointment Booking]
+    [Doctor Availability]
+    [Queue/Token Management]
+  }
+
+  package "Clinical (EHR)" {
+    [Encounter & Notes]
+    [Prescription Module]
+    [Lab Order Integration]
+  }
+
+  package "In-Patient / Ward" {
+    [Bed Allocation]
+    [Admission-Transfer-Discharge]
+    [Nursing Charting]
+  }
+
+  package "Pharmacy" {
+    [Drug Inventory]
+    [Dispensing]
+    [Purchase Orders]
+  }
+
+  package "Laboratory" {
+    [Test Order Queue]
+    [Result Entry]
+    [Report Generation]
+  }
+
+  package "Billing & Finance" {
+    [Invoicing]
+    [Payments]
+    [Insurance Claims]
+  }
+
+  package "Staff & Admin" {
+    [Staff Management]
+    [Shift Scheduling]
+    [Audit Logging]
+  }
+
+  package "Reporting & Analytics" {
+    [Admin Dashboard]
+    [Department Reports]
+  }
+}
+
+package "Cross-Cutting Services" {
+  [Notification Service]
+  [File/Document Storage]
+}
+
+package "Data Layer" {
+  database "Transactional DB\n(PostgreSQL/MongoDB)" as TXDB
+  database "Audit Log Store" as AuditDB
+  storage "Object Storage\n(Reports/Docs)" as ObjStore
+}
+
+' ---- Relationships ----
+[Web App - Admin Portal] --> [API Gateway]
+[Web App - Clinical Console] --> [API Gateway]
+[Web App - Front Desk] --> [API Gateway]
+[Patient Portal (Phase 2)] --> [API Gateway]
+
+[API Gateway] --> [Auth & RBAC Service]
+[API Gateway] --> [Patient Registration]
+[API Gateway] --> [Appointment Booking]
+[API Gateway] --> [Encounter & Notes]
+[API Gateway] --> [Bed Allocation]
+[API Gateway] --> [Drug Inventory]
+[API Gateway] --> [Test Order Queue]
+[API Gateway] --> [Invoicing]
+[API Gateway] --> [Staff Management]
+[API Gateway] --> [Admin Dashboard]
+
+[Encounter & Notes] --> [Prescription Module]
+[Encounter & Notes] --> [Lab Order Integration]
+[Lab Order Integration] --> [Test Order Queue]
+[Prescription Module] --> [Dispensing]
+[Dispensing] --> [Drug Inventory]
+
+[Appointment Booking] --> [Doctor Availability]
+[Appointment Booking] --> [Queue/Token Management]
+
+[Admission-Transfer-Discharge] --> [Bed Allocation]
+[Admission-Transfer-Discharge] --> [Nursing Charting]
+
+[Invoicing] --> [Payments]
+[Invoicing] --> [Insurance Claims]
+
+[Patient Registration] --> TXDB
+[Appointment Booking] --> TXDB
+[Encounter & Notes] --> TXDB
+[Bed Allocation] --> TXDB
+[Drug Inventory] --> TXDB
+[Test Order Queue] --> TXDB
+[Invoicing] --> TXDB
+[Staff Management] --> TXDB
+[Admin Dashboard] --> TXDB
+
+[Audit Logging] --> AuditDB
+[Encounter & Notes] --> ObjStore
+[Report Generation] --> ObjStore
+
+[Appointment Booking] --> [Notification Service]
+[Invoicing] --> [Notification Service]
+[Report Generation] --> [Notification Service]
+
+@enduml

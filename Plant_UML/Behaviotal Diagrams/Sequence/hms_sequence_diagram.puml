@@ -1,0 +1,85 @@
+@startuml HMS_Sequence_Diagram
+skinparam sequence {
+  ActorBackgroundColor #DDEBF7
+  ActorBorderColor #2E74B5
+  ParticipantBackgroundColor #F5F9FF
+  ParticipantBorderColor #2E74B5
+  LifeLineBorderColor #2E74B5
+  ArrowColor #1F3864
+}
+
+actor "Front Desk\nStaff" as FD
+actor "Doctor" as Doc
+actor "Lab\nTechnician" as Lab
+actor "Pharmacist" as Pharm
+actor "Billing\nStaff" as Bill
+
+participant "Patient\nService" as PatSvc
+participant "Appointment\nService" as ApptSvc
+participant "EHR\nService" as EHRSvc
+participant "Lab\nService" as LabSvc
+participant "Pharmacy\nService" as PharmSvc
+participant "Billing\nService" as BillSvc
+participant "Notification\nService" as NotifySvc
+database "Transactional DB" as DB
+
+FD -> PatSvc: searchOrRegisterPatient(details)
+PatSvc -> DB: query/insert patient
+DB --> PatSvc: patient record
+PatSvc --> FD: UHID confirmed
+
+FD -> ApptSvc: bookAppointment(UHID, doctorId, slot)
+ApptSvc -> DB: create appointment (SCHEDULED)
+ApptSvc -> NotifySvc: sendConfirmation(patient)
+NotifySvc --> FD: confirmation sent
+ApptSvc --> FD: appointment booked
+
+== Visit Day: Check-in ==
+FD -> ApptSvc: checkIn(appointmentId)
+ApptSvc -> DB: update status = CHECKED_IN
+ApptSvc --> FD: token number issued
+
+== Consultation ==
+Doc -> EHRSvc: openEncounter(UHID, appointmentId)
+EHRSvc -> DB: fetch patient history
+DB --> EHRSvc: history + allergies
+EHRSvc --> Doc: patient history displayed
+
+Doc -> EHRSvc: recordVitalsAndDiagnosis(notes)
+EHRSvc -> DB: save encounter
+
+Doc -> LabSvc: orderLabTest(encounterId, testType)
+LabSvc -> DB: create lab order (ORDERED)
+LabSvc --> Doc: order confirmed
+
+Doc -> EHRSvc: writePrescription(drugs, dosage)
+EHRSvc -> PharmSvc: checkDrugInteraction(drugs)
+PharmSvc --> EHRSvc: interaction check result
+EHRSvc -> DB: save prescription
+
+== Lab Processing ==
+Lab -> LabSvc: collectSample(labOrderId)
+LabSvc -> DB: status = SAMPLE_COLLECTED
+Lab -> LabSvc: enterResults(values)
+LabSvc -> DB: save results, status = COMPLETED
+LabSvc -> LabSvc: flagIfAbnormal(values)
+LabSvc -> NotifySvc: notifyDoctor(resultReady)
+NotifySvc --> Doc: lab result ready alert
+
+== Pharmacy Dispensing ==
+Pharm -> PharmSvc: dispenseMedicine(prescriptionId)
+PharmSvc -> DB: deduct stock from InventoryItem
+PharmSvc --> Pharm: dispensing confirmed
+
+== Billing ==
+Bill -> BillSvc: generateInvoice(UHID, encounterId)
+BillSvc -> DB: aggregate charges\n(consultation + lab + pharmacy)
+BillSvc -> DB: create invoice (PENDING)
+BillSvc --> Bill: invoice generated
+
+Bill -> BillSvc: recordPayment(invoiceId, amount, mode)
+BillSvc -> DB: update invoice status = PAID
+BillSvc -> NotifySvc: sendReceipt(patient)
+NotifySvc --> FD: receipt sent to patient
+
+@enduml

@@ -1,0 +1,101 @@
+@startuml HMS_Object_Diagram
+skinparam object {
+  BackgroundColor #F5F9FF
+  BorderColor #2E74B5
+  FontColor #1F3864
+}
+
+object "patient01 : Patient" as patient01 {
+  UHID = "UHID-2026-0001"
+  firstName = "Anita"
+  lastName = "Sharma"
+  dob = "1990-03-14"
+  gender = "Female"
+  phone = "+91-9xxxxxxxxx"
+  bloodGroup = "B+"
+  allergies = ["Penicillin"]
+}
+
+object "doctorDas : StaffUser" as doctorDas {
+  staffId = "DOC-104"
+  name = "Dr. R. Das"
+  role = "DOCTOR"
+  department = "General Medicine"
+}
+
+object "apt2001 : Appointment" as apt2001 {
+  appointmentId = "APT-2001"
+  patientId = "UHID-2026-0001"
+  doctorId = "DOC-104"
+  dateTime = "2026-08-24 10:30"
+  status = "COMPLETED"
+  tokenNumber = "T-014"
+}
+
+object "enc3001 : EncounterEHR" as enc3001 {
+  encounterId = "ENC-3001"
+  patientId = "UHID-2026-0001"
+  doctorId = "DOC-104"
+  chiefComplaint = "Fever, cough"
+  diagnosisICD10 = "J06.9"
+  vitals = "Temp 100.4F, BP 118/76"
+}
+
+object "rx4001 : Prescription" as rx4001 {
+  prescriptionId = "RX-4001"
+  encounterId = "ENC-3001"
+  drugName = "Paracetamol 500mg"
+  dosage = "1 tablet"
+  frequency = "TID"
+  duration = "5 days"
+}
+
+object "lab5001 : LabOrder" as lab5001 {
+  labOrderId = "LAB-5001"
+  encounterId = "ENC-3001"
+  testType = "CBC"
+  status = "COMPLETED"
+}
+
+object "labResult5001 : LabResult" as labResult5001 {
+  resultId = "RES-5001"
+  labOrderId = "LAB-5001"
+  resultValues = "WBC 11.2 x10^9/L"
+  isAbnormal = true
+}
+
+object "item9001 : InventoryItem" as item9001 {
+  itemId = "ITM-9001"
+  drugName = "Paracetamol 500mg"
+  batchNumber = "B-2026-07"
+  stockQuantity = 480
+  reorderLevel = 100
+}
+
+object "inv7001 : Invoice" as inv7001 {
+  invoiceId = "INV-7001"
+  patientId = "UHID-2026-0001"
+  totalAmount = 850.00
+  status = "PAID"
+}
+
+object "pay8001 : Payment" as pay8001 {
+  paymentId = "PAY-8001"
+  invoiceId = "INV-7001"
+  amount = 850.00
+  mode = "UPI"
+  status = "SUCCESS"
+}
+
+patient01 -- apt2001
+doctorDas -- apt2001
+patient01 -- enc3001
+doctorDas -- enc3001
+enc3001 -- rx4001
+enc3001 -- lab5001
+lab5001 -- labResult5001
+rx4001 --> item9001 : dispensed from
+patient01 -- inv7001
+inv7001 -- pay8001
+
+@enduml

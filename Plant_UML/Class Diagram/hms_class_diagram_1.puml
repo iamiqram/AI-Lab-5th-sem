@@ -1,0 +1,314 @@
+@startuml HMS_Class_Diagram
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam class {
+  BackgroundColor #F5F9FF
+  BorderColor #2E74B5
+  ArrowColor #1F3864
+  HeaderBackgroundColor #1F3864
+  FontColor #1F3864
+}
+
+' ============ CORE PARTIES ============
+class Patient {
+  +UHID: string
+  +firstName: string
+  +lastName: string
+  +dob: date
+  +gender: string
+  +phone: string
+  +address: string
+  +emergencyContact: string
+  +insuranceId: string
+  +bloodGroup: string
+  +allergies: string[]
+  --
+  +register()
+  +updateDemographics()
+  +mergeDuplicate()
+}
+
+class StaffUser {
+  +staffId: string
+  +name: string
+  +role: RoleEnum
+  +department: string
+  +email: string
+  +phone: string
+  +shiftSchedule: string
+  --
+  +login()
+  +assignRole()
+}
+
+enum RoleEnum {
+  ADMIN
+  DOCTOR
+  NURSE
+  PHARMACIST
+  LAB_TECH
+  BILLING
+  FRONT_DESK
+}
+
+class Department {
+  +departmentId: string
+  +name: string
+  +location: string
+}
+
+' ============ SCHEDULING ============
+class Appointment {
+  +appointmentId: string
+  +patientId: string
+  +doctorId: string
+  +departmentId: string
+  +dateTime: datetime
+  +status: AppointmentStatus
+  +tokenNumber: string
+  --
+  +book()
+  +reschedule()
+  +cancel()
+  +sendReminder()
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CHECKED_IN
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+' ============ CLINICAL ============
+class EncounterEHR {
+  +encounterId: string
+  +patientId: string
+  +doctorId: string
+  +visitDate: datetime
+  +chiefComplaint: string
+  +diagnosisICD10: string
+  +vitals: string
+  +clinicalNotes: string
+  --
+  +addNote()
+  +attachDocument()
+  +viewHistory()
+}
+
+class Prescription {
+  +prescriptionId: string
+  +encounterId: string
+  +drugName: string
+  +dosage: string
+  +frequency: string
+  +duration: string
+  --
+  +checkDrugInteraction()
+  +dispense()
+}
+
+class LabOrder {
+  +labOrderId: string
+  +encounterId: string
+  +testType: string
+  +status: LabStatus
+  +orderedDate: datetime
+  --
+  +collectSample()
+  +sendToLab()
+}
+
+class LabResult {
+  +resultId: string
+  +labOrderId: string
+  +resultValues: string
+  +referenceRange: string
+  +isAbnormal: boolean
+  +reportDate: datetime
+  --
+  +generateReport()
+  +flagAbnormal()
+}
+
+enum LabStatus {
+  ORDERED
+  SAMPLE_COLLECTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+' ============ IN-PATIENT ============
+class Ward {
+  +wardId: string
+  +name: string
+  +floor: string
+  +totalBeds: int
+}
+
+class Bed {
+  +bedId: string
+  +wardId: string
+  +bedNumber: string
+  +status: BedStatus
+  +patientId: string
+  --
+  +allocate()
+  +release()
+}
+
+enum BedStatus {
+  VACANT
+  OCCUPIED
+  MAINTENANCE
+}
+
+class Admission {
+  +admissionId: string
+  +patientId: string
+  +bedId: string
+  +admitDate: datetime
+  +dischargeDate: datetime
+  +dischargeSummary: string
+  --
+  +admit()
+  +transfer()
+  +discharge()
+}
+
+class NursingChart {
+  +chartId: string
+  +admissionId: string
+  +vitals: string
+  +medicationAdminRecord: string
+  +timestamp: datetime
+  --
+  +logVitals()
+  +recordMedication()
+}
+
+' ============ PHARMACY ============
+class InventoryItem {
+  +itemId: string
+  +drugName: string
+  +batchNumber: string
+  +expiryDate: date
+  +manufacturer: string
+  +stockQuantity: int
+  +reorderLevel: int
+  --
+  +deductStock()
+  +checkLowStock()
+  +checkNearExpiry()
+}
+
+class PurchaseOrder {
+  +poId: string
+  +vendorName: string
+  +orderDate: date
+  +status: string
+  --
+  +createOrder()
+  +receiveStock()
+}
+
+' ============ BILLING ============
+class Invoice {
+  +invoiceId: string
+  +patientId: string
+  +issueDate: datetime
+  +totalAmount: decimal
+  +status: InvoiceStatus
+  --
+  +generateInvoice()
+  +applyDiscount()
+  +sendToInsurance()
+}
+
+class InvoiceLineItem {
+  +lineItemId: string
+  +invoiceId: string
+  +description: string
+  +category: string
+  +amount: decimal
+}
+
+class Payment {
+  +paymentId: string
+  +invoiceId: string
+  +amount: decimal
+  +mode: PaymentMode
+  +paymentDate: datetime
+  +status: string
+  --
+  +processPayment()
+  +issueRefund()
+}
+
+enum InvoiceStatus {
+  PENDING
+  PARTIALLY_PAID
+  PAID
+  REFUNDED
+}
+
+enum PaymentMode {
+  CASH
+  CARD
+  UPI
+  INSURANCE
+}
+
+' ============ NOTIFICATIONS / AUDIT ============
+class Notification {
+  +notificationId: string
+  +recipientId: string
+  +channel: string
+  +message: string
+  +sentAt: datetime
+  --
+  +send()
+}
+
+class AuditLog {
+  +logId: string
+  +staffId: string
+  +action: string
+  +entityAffected: string
+  +timestamp: datetime
+}
+
+' ============ RELATIONSHIPS ============
+Patient "1" -- "0..*" Appointment
+StaffUser "1" -- "0..*" Appointment : doctor >
+Department "1" -- "0..*" Appointment
+Department "1" -- "0..*" StaffUser
+StaffUser "1" -- "0..*" RoleEnum : has >
+
+Patient "1" -- "0..*" EncounterEHR
+StaffUser "1" -- "0..*" EncounterEHR : doctor >
+EncounterEHR "1" -- "0..*" Prescription
+EncounterEHR "1" -- "0..*" LabOrder
+LabOrder "1" -- "1" LabResult
+LabOrder "1" -- "1" LabStatus : has >
+
+Ward "1" -- "0..*" Bed
+Bed "1" -- "0..*" Admission
+Patient "1" -- "0..*" Admission
+Admission "1" -- "0..*" NursingChart
+Bed "1" -- "1" BedStatus : has >
+
+Prescription "0..*" --> "1" InventoryItem : dispenses from
+InventoryItem "0..*" -- "0..*" PurchaseOrder
+
+Patient "1" -- "0..*" Invoice
+Invoice "1" -- "1..*" InvoiceLineItem
+Invoice "1" -- "0..*" Payment
+Invoice "1" -- "1" InvoiceStatus : has >
+Payment "1" -- "1" PaymentMode : has >
+
+Patient "1" -- "0..*" Notification
+StaffUser "1" -- "0..*" AuditLog : performs >
+
+@enduml
