@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Visit record{% endblock %}
+{% block content %}
+<h1>Visit record - appointment #{{ a.appointment_id }}</h1>
+<div class="card">
+  Patient: <b><a href="{{ url_for('patient_detail', pid=a.patient_id) }}">{{ a.patient_name }}</a></b> &nbsp;
+  Doctor: <b>{{ a.doctor_name }}</b> &nbsp; When: <b>{{ a.date }} {{ a.time_slot }}</b> &nbsp; Status: <b>{{ a.status }}</b>
+</div>
+{% if errors %}<div class="errors"><ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+
+{% if rec %}
+  <div class="card">
+    <pre><b>Symptoms:</b> {{ rec.symptoms or '-' }}
+<b>Diagnosis:</b> {{ rec.diagnosis }}
+<b>Prescription:</b> {{ rec.prescription or '-' }}</pre>
+    <p class="muted">Saved {{ rec.created_at }}. Records are never edited or deleted; add a dated note below to correct or extend them.</p>
+    {% if rec.addendum %}<h2>Addendum</h2><pre>{{ rec.addendum }}</pre>{% endif %}
+  </div>
+  {% if can_write %}
+  <form method="post" action="{{ url_for('visit_addendum', aid=a.appointment_id) }}" class="card">
+    {{ csrf_input() }}
+    <label>Add a note</label><textarea name="note" required></textarea>
+    <p><button>Add note</button></p>
+  </form>
+  {% endif %}
+{% elif can_write and a.status == 'Scheduled' %}
+  <form method="post" class="card">
+    {{ csrf_input() }}
+    <label>Symptoms</label><textarea name="symptoms">{{ form.get('symptoms', '') }}</textarea>
+    <label>Diagnosis *</label><textarea name="diagnosis" required>{{ form.get('diagnosis', '') }}</textarea>
+    <label>Prescription / notes</label><textarea name="prescription">{{ form.get('prescription', '') }}</textarea>
+    <p><button class="primary">Save visit record</button></p>
+  </form>
+{% else %}
+  <p class="muted">No visit record has been saved for this appointment.</p>
+{% endif %}
+<p><a class="btn" href="{{ url_for('appointments') }}">Back to appointments</a></p>
+{% endblock %}

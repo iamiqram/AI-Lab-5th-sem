@@ -1,0 +1,341 @@
+' =====================================================
+' Hospital Management System - UML diagrams (PlantUML)
+' Paste any block (from @startuml to @enduml) into
+' https://www.plantuml.com/plantuml or a VS Code PlantUML extension.
+' =====================================================
+
+
+' ===================== STRUCTURAL =====================
+
+' ---------- 1. CLASS DIAGRAM ----------
+@startuml 01_class_diagram
+title Class Diagram - Hospital Management System
+skinparam classAttributeIconSize 0
+
+class User {
+  - userId : int
+  - username : String
+  - passwordHash : String
+  - role : String
+  + login()
+  + logout()
+}
+
+class Admin {
+  + manageDoctors()
+  + viewReports()
+}
+
+class Receptionist {
+  + registerPatient()
+  + bookAppointment()
+  + generateBill()
+}
+
+class Doctor {
+  - doctorId : int
+  - specialization : String
+  - consultationFee : double
+  + viewAppointments()
+  + addVisitRecord()
+}
+
+class Patient {
+  - patientId : int
+  - name : String
+  - age : int
+  - gender : String
+  - phone : String
+  - address : String
+  + updateDetails()
+}
+
+class Appointment {
+  - appointmentId : int
+  - date : Date
+  - timeSlot : Time
+  - status : String
+  + book()
+  + reschedule()
+  + cancel()
+}
+
+class VisitRecord {
+  - recordId : int
+  - symptoms : String
+  - diagnosis : String
+  - prescription : String
+  + save()
+}
+
+class Bill {
+  - billId : int
+  - discount : double
+  - totalAmount : double
+  - status : String
+  + generate()
+  + markPaid()
+  + print()
+}
+
+class BillItem {
+  - description : String
+  - amount : double
+}
+
+User <|-- Admin
+User <|-- Receptionist
+User <|-- Doctor
+
+Patient "1" -- "0..*" Appointment : has
+Doctor "1" -- "0..*" Appointment : attends
+Appointment "1" -- "0..1" VisitRecord : produces
+Appointment "1" -- "0..1" Bill : billed by
+Bill "1" *-- "1..*" BillItem : contains
+@enduml
+
+
+' ---------- 2. OBJECT DIAGRAM ----------
+@startuml 02_object_diagram
+title Object Diagram - One Visit (sample data)
+
+object "p1 : Patient" as p1 {
+  patientId = 101
+  name = "Ravi Das"
+  age = 34
+  phone = "9876500001"
+}
+
+object "d1 : Doctor" as d1 {
+  doctorId = 7
+  name = "Dr. Sen"
+  specialization = "General Medicine"
+}
+
+object "a1 : Appointment" as a1 {
+  appointmentId = 5001
+  date = "2026-10-05"
+  timeSlot = "10:00"
+  status = "Completed"
+}
+
+object "v1 : VisitRecord" as v1 {
+  recordId = 3001
+  diagnosis = "Viral fever"
+  prescription = "Rest, fluids"
+}
+
+object "b1 : Bill" as b1 {
+  billId = 9001
+  totalAmount = 500
+  status = "Paid"
+}
+
+p1 --> a1
+d1 --> a1
+a1 --> v1
+a1 --> b1
+@enduml
+
+
+' ---------- 3. COMPONENT DIAGRAM ----------
+@startuml 03_component_diagram
+title Component Diagram - SHMS
+
+package "Presentation Layer" {
+  [Web Interface]
+}
+
+package "Application Layer" {
+  [Authentication Module]
+  [Patient Module]
+  [Doctor Module]
+  [Appointment Module]
+  [Billing Module]
+  [Report Module]
+}
+
+package "Data Layer" {
+  [Data Access Layer]
+}
+
+database "Hospital Database" as DB
+
+[Web Interface] --> [Authentication Module]
+[Web Interface] --> [Patient Module]
+[Web Interface] --> [Doctor Module]
+[Web Interface] --> [Appointment Module]
+[Web Interface] --> [Billing Module]
+[Web Interface] --> [Report Module]
+
+[Appointment Module] ..> [Patient Module] : uses
+[Appointment Module] ..> [Doctor Module] : uses
+[Billing Module] ..> [Appointment Module] : uses
+
+[Authentication Module] --> [Data Access Layer]
+[Patient Module] --> [Data Access Layer]
+[Doctor Module] --> [Data Access Layer]
+[Appointment Module] --> [Data Access Layer]
+[Billing Module] --> [Data Access Layer]
+[Report Module] --> [Data Access Layer]
+
+[Data Access Layer] --> DB
+@enduml
+
+
+' ---------- 4. DEPLOYMENT DIAGRAM ----------
+@startuml 04_deployment_diagram
+title Deployment Diagram - SHMS
+
+node "Staff Computer" as client {
+  artifact "Web Browser" as browser
+}
+
+node "Application Server" as app {
+  artifact "SHMS Web Application" as webapp
+}
+
+node "Database Server" as dbserver {
+  database "Hospital DB" as db
+}
+
+node "Printer" as printer
+
+browser --> webapp : HTTPS
+webapp --> db : SQL
+webapp ..> printer : print bill / PDF
+@enduml
+
+
+' ===================== BEHAVIOURAL =====================
+
+' ---------- 5. USE CASE DIAGRAM ----------
+@startuml 05_use_case_diagram
+title Use Case Diagram - SHMS
+left to right direction
+
+actor Admin
+actor Receptionist
+actor Doctor
+actor Patient
+
+rectangle "Hospital Management System" {
+  usecase "Login" as UC1
+  usecase "Manage Staff Accounts" as UC2
+  usecase "Manage Doctors" as UC3
+  usecase "Register / Edit Patient" as UC4
+  usecase "Search Patient" as UC5
+  usecase "Book Appointment" as UC6
+  usecase "Check Doctor Availability" as UC7
+  usecase "Reschedule / Cancel Appointment" as UC8
+  usecase "View Appointments" as UC9
+  usecase "Add Diagnosis and Prescription" as UC10
+  usecase "View Visit History" as UC11
+  usecase "Generate Bill" as UC12
+  usecase "Mark Bill Paid" as UC13
+  usecase "Print Bill" as UC14
+  usecase "View Reports" as UC15
+}
+
+Admin --> UC2
+Admin --> UC3
+Admin --> UC15
+
+Receptionist --> UC4
+Receptionist --> UC5
+Receptionist --> UC6
+Receptionist --> UC8
+Receptionist --> UC12
+Receptionist --> UC13
+
+Doctor --> UC9
+Doctor --> UC10
+Doctor --> UC11
+
+Patient --> UC9
+
+UC6 ..> UC7 : <<include>>
+UC2 ..> UC1 : <<include>>
+UC12 ..> UC1 : <<include>>
+UC14 ..> UC12 : <<extend>>
+@enduml
+
+
+' ---------- 6. ACTIVITY DIAGRAM ----------
+@startuml 06_activity_diagram
+title Activity Diagram - Patient Visit Flow
+
+|Receptionist|
+start
+:Search for patient;
+if (Patient found?) then (yes)
+else (no)
+  :Register new patient;
+endif
+repeat
+  :Choose doctor, date and slot;
+repeat while (Slot already taken?) is (yes) not (no)
+:Book appointment;
+
+|Doctor|
+:See patient on appointment day;
+:Treat patient;
+:Save diagnosis and prescription;
+:Appointment becomes Completed;
+
+|Receptionist|
+:Generate bill;
+:Take payment;
+:Mark bill as Paid;
+:Print bill;
+stop
+@enduml
+
+
+' ---------- 7. SEQUENCE DIAGRAM ----------
+@startuml 07_sequence_diagram
+title Sequence Diagram - Book Appointment
+
+actor Receptionist
+participant "Web UI" as UI
+participant "Appointment Module" as AM
+database "Hospital DB" as DB
+
+Receptionist -> UI : Select patient, doctor, date
+UI -> AM : getFreeSlots(doctor, date)
+AM -> DB : query booked slots
+DB --> AM : booked slots
+AM --> UI : free slots
+UI --> Receptionist : show free slots
+
+Receptionist -> UI : Choose slot and confirm
+UI -> AM : bookAppointment(patient, doctor, date, slot)
+AM -> DB : check slot still free
+
+alt slot is free
+  AM -> DB : insert appointment (status = Scheduled)
+  DB --> AM : saved
+  AM --> UI : booking confirmed
+else slot already taken
+  AM --> UI : error: slot already booked
+end
+
+UI --> Receptionist : show result
+@enduml
+
+
+' ---------- 8. STATE MACHINE DIAGRAM ----------
+@startuml 08_state_machine_diagram
+title State Machine Diagram - Appointment
+
+[*] --> Scheduled : book
+
+Scheduled --> Scheduled : reschedule
+Scheduled --> Cancelled : cancel
+Scheduled --> NoShow : patient does not arrive
+Scheduled --> Completed : visit record saved
+
+Cancelled --> [*]
+NoShow --> [*]
+Completed --> [*]
+@enduml

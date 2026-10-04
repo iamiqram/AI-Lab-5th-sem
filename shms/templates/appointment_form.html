@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Reschedule appointment' if appt else 'Book appointment' }}{% endblock %}
+{% block content %}
+<h1>{{ 'Reschedule appointment #' ~ appt.appointment_id if appt else 'Book appointment' }}</h1>
+{% if errors %}<div class="errors"><ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+
+<form method="get" class="card">
+  <h2 style="margin-top:0">1. Choose date{{ '' if appt else ', patient and doctor' }}</h2>
+  {% if appt %}
+    <p>Patient: <b>{{ appt.patient_name }}</b> &nbsp; Doctor: <b>{{ appt.doctor_name }}</b><br>
+    Current slot: <b>{{ appt.date }} {{ appt.time_slot }}</b></p>
+  {% else %}
+    <label>Patient</label>
+    <select name="patient_id" required><option value="">- choose -</option>
+      {% for p in patients %}<option value="{{ p.patient_id }}" {{ 'selected' if p.patient_id == patient_id }}>{{ p.name }} - {{ p.phone }} (ID {{ p.patient_id }})</option>{% endfor %}</select>
+    <label>Doctor</label>
+    <select name="doctor_id" required><option value="">- choose -</option>
+      {% for d in doctors %}<option value="{{ d.doctor_id }}" {{ 'selected' if d.doctor_id == doctor_id }}>{{ d.name }} - {{ d.specialization }}</option>{% endfor %}</select>
+  {% endif %}
+  <label>Date</label><input type="date" name="date" value="{{ day }}" min="{{ today }}" required>
+  <p><button>Show free slots</button></p>
+</form>
+
+{% if checked %}
+  {% if slots %}
+  <form method="post" class="card">
+    {{ csrf_input() }}
+    {% if not appt %}<input type="hidden" name="patient_id" value="{{ patient_id }}"><input type="hidden" name="doctor_id" value="{{ doctor_id }}">{% endif %}
+    <input type="hidden" name="date" value="{{ day }}">
+    <h2 style="margin-top:0">2. Pick a free slot on {{ day }}</h2>
+    <div class="slots">{% for s in slots %}<label class="slot"><input type="radio" name="slot" value="{{ s }}" required> {{ s }}</label>{% endfor %}</div>
+    <button class="primary">{{ 'Reschedule' if appt else 'Confirm booking' }}</button>
+    <a class="btn" href="{{ url_for('appointments') }}">Cancel</a>
+  </form>
+  {% else %}
+  <div class="flash warn">No free slots for this doctor on {{ day }} (not a working day, fully booked, or already past). Try another date.</div>
+  {% endif %}
+{% endif %}
+{% endblock %}

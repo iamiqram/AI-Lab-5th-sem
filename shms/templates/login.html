@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="card" style="max-width:420px;margin:60px auto;">
+  <h1>Hospital Management System</h1>
+  <p class="muted">Please log in to continue.</p>
+  <form method="post">
+    {{ csrf_input() }}
+    <label>Username</label><input type="text" name="username" required autofocus>
+    <label>Password</label><input type="password" name="password" required>
+    <p><button class="primary">Log in</button></p>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Doctors{% endblock %}
+{% block content %}
+<div class="row"><h1>Doctors</h1>
+{% if user.role == 'Admin' %}<a class="btn primary" href="{{ url_for('doctor_form') }}">+ Add doctor</a>{% endif %}</div>
+<table>
+  <tr><th>Name</th><th>Specialization</th><th>Fee</th><th>Available</th><th>Status</th>{% if user.role == 'Admin' %}<th></th>{% endif %}</tr>
+  {% for d in rows %}
+  <tr><td>{{ d.name }}</td><td>{{ d.specialization }}</td><td>{{ d.consultation_fee|money }}</td>
+      <td>{{ d.available_days.replace(',', ', ') }}<br><span class="muted">{{ d.available_from }} - {{ d.available_to }}</span></td>
+      <td>{% if d.is_active %}<span class="tag green">Active</span>{% else %}<span class="tag red">Inactive</span>{% endif %}</td>
+      {% if user.role == 'Admin' %}<td>
+        <a class="btn" href="{{ url_for('doctor_form', did=d.doctor_id) }}">Edit</a>
+        <form method="post" action="{{ url_for('doctor_toggle', did=d.doctor_id) }}" class="inline">{{ csrf_input() }}
+          <button>{{ 'Deactivate' if d.is_active else 'Activate' }}</button></form></td>{% endif %}</tr>
+  {% else %}<tr><td colspan="6" class="muted">No doctors yet.</td></tr>{% endfor %}
+</table>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<h1>User accounts</h1>
+{% if errors %}<div class="errors"><ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+<form method="post" class="card">
+  {{ csrf_input() }}
+  <h2 style="margin-top:0">Create account</h2>
+  <label>Username</label><input type="text" name="username" required>
+  <label>Password (min 6 characters)</label><input type="password" name="password" required>
+  <label>Role</label>
+  <select name="role" required>{% for r in roles %}<option>{{ r }}</option>{% endfor %}</select>
+  <label>Linked record (needed for Doctor and Patient roles)</label>
+  <select name="link_id">
+    <option value="">- none -</option>
+    <optgroup label="Doctors without an account">{% for d in free_doctors %}<option value="{{ d.doctor_id }}">{{ d.name }}</option>{% endfor %}</optgroup>
+    <optgroup label="Patients without an account">{% for p in free_patients %}<option value="{{ p.patient_id }}">{{ p.name }} (ID {{ p.patient_id }})</option>{% endfor %}</optgroup>
+  </select>
+  <p class="muted">Pick a doctor for the Doctor role, or a patient for the Patient role.</p>
+  <p><button class="primary">Create</button></p>
+</form>
+<table>
+  <tr><th>ID</th><th>Username</th><th>Role</th><th>Status</th><th></th></tr>
+  {% for u in rows %}
+  <tr><td>{{ u.user_id }}</td><td>{{ u.username }}</td><td>{{ u.role }}</td>
+      <td>{% if u.is_active %}<span class="tag green">Active</span>{% else %}<span class="tag red">Inactive</span>{% endif %}</td>
+      <td><form method="post" action="{{ url_for('user_toggle', uid=u.user_id) }}" class="inline">{{ csrf_input() }}
+        <button>{{ 'Deactivate' if u.is_active else 'Activate' }}</button></form></td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

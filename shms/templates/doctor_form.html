@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit doctor' if editing else 'Add doctor' }}{% endblock %}
+{% block content %}
+<h1>{{ 'Edit doctor' if editing else 'Add doctor' }}</h1>
+{% if errors %}<div class="errors"><ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+<form method="post" class="card">
+  {{ csrf_input() }}
+  <label>Name *</label><input type="text" name="name" value="{{ d.name or '' }}" required>
+  <label>Specialization *</label><input type="text" name="specialization" value="{{ d.specialization or '' }}" required>
+  <label>Consultation fee *</label><input type="number" step="0.01" min="0" name="consultation_fee" value="{{ d.consultation_fee if d.consultation_fee is not none else '' }}" required>
+  <label>Available days *</label>
+  <div class="days">{% for day in days %}<label><input type="checkbox" name="days" value="{{ day }}" {{ 'checked' if day in sel_days }}> {{ day }}</label>{% endfor %}</div>
+  <label>Available from *</label><input type="time" name="available_from" value="{{ d.available_from }}" required>
+  <label>Available to *</label><input type="time" name="available_to" value="{{ d.available_to }}" required>
+  <p><button class="primary">Save</button> <a class="btn" href="{{ url_for('doctors') }}">Cancel</a></p>
+</form>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Audit log{% endblock %}
+{% block content %}
+<h1>Audit log</h1><p class="muted">Latest 200 changes: who did what, and when.</p>
+<table>
+  <tr><th>When</th><th>User</th><th>Entity</th><th>Action</th><th>Details</th></tr>
+  {% for r in rows %}<tr><td>{{ r.created_at }}</td><td>{{ r.username or '-' }}</td><td>{{ r.entity }} #{{ r.entity_id }}</td><td>{{ r.action }}</td><td>{{ r.details }}</td></tr>
+  {% else %}<tr><td colspan="5" class="muted">Nothing logged yet.</td></tr>{% endfor %}
+</table>
+{% endblock %}

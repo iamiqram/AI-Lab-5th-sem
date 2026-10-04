@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Bills{% endblock %}
+{% block content %}
+<div class="row"><h1>Bills</h1>
+<form method="get" class="inline"><select name="status" style="width:140px"><option value="">All</option>
+  <option {{ 'selected' if status == 'Unpaid' }}>Unpaid</option><option {{ 'selected' if status == 'Paid' }}>Paid</option></select><button>Filter</button></form></div>
+<p class="muted">Create a bill from the Appointments page, on a completed appointment.</p>
+<table>
+  <tr><th>Bill</th><th>Date</th><th>Patient</th><th>Doctor</th><th>Total</th><th>Status</th><th></th></tr>
+  {% for b in rows %}
+  <tr><td>#{{ b.bill_id }}</td><td>{{ b.date }}</td><td>{{ b.patient_name }}</td><td>{{ b.doctor_name }}</td><td>{{ b.total_amount|money }}</td>
+      <td><span class="tag {{ 'green' if b.status == 'Paid' else 'amber' }}">{{ b.status }}</span></td>
+      <td><a class="btn" href="{{ url_for('bill_view', bid=b.bill_id) }}">Open</a></td></tr>
+  {% else %}<tr><td colspan="7" class="muted">No bills.</td></tr>{% endfor %}
+</table>
+{% endblock %}

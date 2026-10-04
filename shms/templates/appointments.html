@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Appointments{% endblock %}
+{% block content %}
+<div class="row"><h1>Appointments</h1>
+{% if user.role in ('Admin', 'Receptionist') %}<a class="btn primary" href="{{ url_for('appointment_new') }}">+ Book appointment</a>{% endif %}</div>
+<form method="get" class="card">
+  <div class="row" style="justify-content:flex-start;align-items:flex-end">
+    <div><label>Date (clear for all)</label><input type="date" name="date" value="{{ day }}" style="width:170px"></div>
+    {% if user.role != 'Doctor' %}
+    <div><label>Doctor</label><select name="doctor_id" style="width:200px"><option value="">All</option>
+      {% for d in doctors %}<option value="{{ d.doctor_id }}" {{ 'selected' if d.doctor_id == doctor_id }}>{{ d.name }}</option>{% endfor %}</select></div>
+    {% endif %}
+    <div><label>Status</label><select name="status" style="width:160px"><option value="">All</option>
+      {% for s in ('Scheduled', 'Completed', 'Cancelled', 'No-show') %}<option {{ 'selected' if s == status }}>{{ s }}</option>{% endfor %}</select></div>
+    <div><button>Filter</button></div>
+  </div>
+</form>
+<table>
+  <tr><th>Date</th><th>Time</th><th>Patient</th><th>Doctor</th><th>Status</th><th>Actions</th></tr>
+  {% for a in rows %}
+  <tr>
+    <td>{{ a.date }}</td><td>{{ a.time_slot }}</td>
+    <td><a href="{{ url_for('patient_detail', pid=a.patient_id) }}">{{ a.patient_name }}</a></td><td>{{ a.doctor_name }}</td>
+    <td>{% set c = {'Scheduled':'amber','Completed':'green','Cancelled':'red','No-show':'red'}[a.status] %}<span class="tag {{ c }}">{{ a.status }}</span>
+        {% if a.cancel_reason %}<br><span class="muted">{{ a.cancel_reason }}</span>{% endif %}</td>
+    <td>
+      {% if user.role in ('Doctor', 'Admin') and (a.status == 'Scheduled' or a.has_visit) %}
+        <a class="btn" href="{{ url_for('visit', aid=a.appointment_id) }}">{{ 'View visit' if a.has_visit else 'Record visit' }}</a>
+      {% endif %}
+      {% if user.role in ('Admin', 'Receptionist') %}
+        {% if a.status == 'Scheduled' %}
+          <a class="btn" href="{{ url_for('appointment_reschedule', aid=a.appointment_id) }}">Reschedule</a>
+          <form method="post" action="{{ url_for('appointment_noshow', aid=a.appointment_id) }}" class="inline">{{ csrf_input() }}<button>No-show</button></form><br>
+          <form method="post" action="{{ url_for('appointment_cancel', aid=a.appointment_id) }}" class="inline">{{ csrf_input() }}
+            <input type="text" name="reason" placeholder="Cancel reason" required><button class="danger">Cancel</button></form>
+        {% elif a.status == 'Completed' %}
+          {% if a.bill_id %}<a class="btn" href="{{ url_for('bill_view', bid=a.bill_id) }}">View bill</a>
+          {% else %}<form method="post" action="{{ url_for('bill_create', aid=a.appointment_id) }}" class="inline">{{ csrf_input() }}<button class="primary">Create bill</button></form>{% endif %}
+        {% endif %}
+      {% endif %}
+    </td>
+  </tr>
+  {% else %}<tr><td colspan="6" class="muted">No appointments match.</td></tr>{% endfor %}
+</table>
+{% endblock %}

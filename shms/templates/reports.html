@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<div class="row"><h1>Reports</h1>
+<form method="get" class="inline"><input type="date" name="date" value="{{ day }}" style="width:170px"><button>Show</button></form></div>
+<h2>Daily summary for {{ day }}</h2>
+<div class="stats">
+  <div class="stat"><b>{{ seen }}</b>Patients seen</div>
+  {% for s in ('Scheduled', 'Completed', 'Cancelled', 'No-show') %}<div class="stat"><b>{{ by_status.get(s, 0) }}</b>{{ s }}</div>{% endfor %}
+  <div class="stat"><b>{{ collected|money }}</b>Amount collected</div>
+</div>
+<h2>Unpaid bills (oldest first)</h2>
+<table>
+  <tr><th>Bill</th><th>Visit date</th><th>Patient</th><th style="text-align:right">Amount</th><th></th></tr>
+  {% for b in unpaid %}
+  <tr><td>#{{ b.bill_id }}</td><td>{{ b.date }}</td><td>{{ b.patient_name }}</td><td style="text-align:right">{{ b.total_amount|money }}</td>
+      <td><a class="btn" href="{{ url_for('bill_view', bid=b.bill_id) }}">Open</a></td></tr>
+  {% else %}<tr><td colspan="5" class="muted">No unpaid bills.</td></tr>{% endfor %}
+</table>
+{% endblock %}

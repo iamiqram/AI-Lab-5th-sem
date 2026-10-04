@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}SHMS{% endblock %} - SHMS</title>
+<style>
+  :root { --blue:#2e5597; --dark:#1f3864; --line:#d5dbe6; --bg:#f4f6fa; }
+  * { box-sizing: border-box; }
+  body { font-family: Calibri, "Segoe UI", Arial, sans-serif; margin:0; background:var(--bg); color:#222; }
+  header.top { background:var(--dark); color:#fff; display:flex; align-items:center; gap:20px; padding:10px 24px; flex-wrap:wrap; }
+  header .brand { font-weight:bold; font-size:20px; }
+  header nav { display:flex; gap:14px; flex:1; flex-wrap:wrap; }
+  header a { color:#cfe0ff; text-decoration:none; }
+  header a:hover { color:#fff; text-decoration:underline; }
+  .logout { display:flex; align-items:center; gap:10px; font-size:14px; margin:0; }
+  main { max-width:1100px; margin:24px auto; padding:0 16px; }
+  h1 { color:var(--dark); font-size:26px; margin:0 0 14px; }
+  h2 { color:var(--blue); font-size:19px; margin:22px 0 8px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:8px; padding:16px; margin-bottom:16px; }
+  .row { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+  table { border-collapse:collapse; width:100%; background:#fff; border:1px solid var(--line); }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); font-size:15px; vertical-align:top; }
+  th { background:#e3eaf7; color:var(--dark); }
+  label { display:block; margin:10px 0 4px; font-weight:600; font-size:14px; }
+  input, select, textarea { padding:8px; border:1px solid #b9c3d6; border-radius:6px; font:inherit; max-width:100%; }
+  input[type=text], input[type=password], input[type=number], input[type=date], input[type=time], select, textarea { width:100%; max-width:420px; }
+  textarea { max-width:620px; min-height:80px; }
+  .btn, button { background:#e3eaf7; color:var(--dark); border:1px solid #b9c3d6; border-radius:6px; padding:7px 14px; font:inherit; cursor:pointer; text-decoration:none; display:inline-block; }
+  .btn.primary, button.primary { background:var(--blue); color:#fff; border-color:var(--blue); }
+  button.danger { background:#fbe3e3; border-color:#e3a5a5; color:#8a1f1f; }
+  button.link { background:none; border:none; color:#cfe0ff; padding:0; text-decoration:underline; }
+  form.inline { display:inline-flex; gap:6px; align-items:center; margin:2px 0; }
+  form.inline input { width:150px; }
+  .flash { padding:10px 14px; border-radius:6px; margin-bottom:12px; }
+  .flash.ok { background:#e2f5e6; border:1px solid #9bd3a6; }
+  .flash.error { background:#fbe3e3; border:1px solid #e3a5a5; }
+  .flash.warn { background:#fff4d6; border:1px solid #e6cf84; }
+  .errors { background:#fbe3e3; border:1px solid #e3a5a5; border-radius:6px; padding:8px 14px; margin-bottom:12px; }
+  .errors ul { margin:4px 0 4px 18px; padding:0; }
+  .tag { display:inline-block; padding:1px 8px; border-radius:10px; font-size:13px; background:#e3eaf7; }
+  .tag.red { background:#fbe3e3; } .tag.green { background:#e2f5e6; } .tag.amber { background:#fff4d6; }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; margin-bottom:16px; }
+  .stat { background:#fff; border:1px solid var(--line); border-radius:8px; padding:14px; }
+  .stat b { display:block; font-size:26px; color:var(--dark); }
+  .muted { color:#667; font-size:14px; }
+  .slots { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0; }
+  .slot { border:1px solid #b9c3d6; border-radius:6px; padding:6px 12px; background:#fff; font-weight:normal; margin:0; }
+  pre { white-space:pre-wrap; font:inherit; margin:4px 0; }
+  footer { text-align:center; color:#778; font-size:13px; padding:20px; }
+  .days label { display:inline-block; margin-right:12px; font-weight:normal; }
+  @media print {
+    header.top, footer, .noprint { display:none !important; }
+    body { background:#fff; } main { margin:0; max-width:none; }
+    .card { border:none; }
+  }
+</style>
+</head>
+<body>
+{% if user %}
+<header class="top">
+  <div class="brand">SHMS</div>
+  <nav>
+    {% if user.role == 'Patient' %}
+      <a href="{{ url_for('my_records') }}">My records</a>
+    {% else %}
+      <a href="{{ url_for('dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('patients') }}">Patients</a>
+      {% if user.role in ('Admin', 'Receptionist') %}<a href="{{ url_for('doctors') }}">Doctors</a>{% endif %}
+      <a href="{{ url_for('appointments') }}">Appointments</a>
+      {% if user.role in ('Admin', 'Receptionist') %}<a href="{{ url_for('bills') }}">Bills</a>{% endif %}
+      {% if user.role == 'Admin' %}
+        <a href="{{ url_for('reports') }}">Reports</a>
+        <a href="{{ url_for('users') }}">Users</a>
+        <a href="{{ url_for('audit_log') }}">Audit log</a>
+      {% endif %}
+    {% endif %}
+  </nav>
+  <form method="post" action="{{ url_for('logout') }}" class="logout">
+    {{ csrf_input() }}<span>{{ user.username }} ({{ user.role }})</span><button class="link">Log out</button>
+  </form>
+</header>
+{% endif %}
+<main>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}<div class="flash {{ cat }}">{{ msg }}</div>{% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+<footer>SHMS - learning project only. Never use it with real patient data.</footer>
+</body>
+</html>

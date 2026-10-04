@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}My records{% endblock %}
+{% block content %}
+<h1>My records</h1>
+<h2>My appointments</h2>
+<table>
+  <tr><th>Date</th><th>Time</th><th>Doctor</th><th>Status</th></tr>
+  {% for a in appts %}<tr><td>{{ a.date }}</td><td>{{ a.time_slot }}</td><td>{{ a.doctor_name }}</td><td>{{ a.status }}</td></tr>
+  {% else %}<tr><td colspan="4" class="muted">No appointments.</td></tr>{% endfor %}
+</table>
+<h2>My bills</h2>
+<table>
+  <tr><th>Bill</th><th>Visit date</th><th>Total</th><th>Status</th><th></th></tr>
+  {% for b in bills %}<tr><td>#{{ b.bill_id }}</td><td>{{ b.date }}</td><td>{{ b.total_amount|money }}</td><td>{{ b.status }}</td>
+    <td><a class="btn" href="{{ url_for('bill_print', bid=b.bill_id) }}">View / print</a></td></tr>
+  {% else %}<tr><td colspan="5" class="muted">No bills.</td></tr>{% endfor %}
+</table>
+{% endblock %}

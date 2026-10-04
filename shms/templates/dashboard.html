@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+{% if stats %}
+<div class="stats">
+  <div class="stat"><b>{{ stats.patients }}</b>Active patients</div>
+  <div class="stat"><b>{{ stats.today }}</b>Appointments today</div>
+  <div class="stat"><b>{{ stats.unpaid }}</b>Unpaid bills</div>
+  <div class="stat"><b>{{ stats.collected|money }}</b>Collected today</div>
+</div>
+{% endif %}
+<h2>Today's appointments</h2>
+<table>
+  <tr><th>Time</th><th>Patient</th><th>Doctor</th><th>Status</th><th></th></tr>
+  {% for a in todays %}
+  <tr>
+    <td>{{ a.time_slot }}</td><td>{{ a.patient_name }}</td><td>{{ a.doctor_name }}</td><td>{{ a.status }}</td>
+    <td>{% if user.role in ('Doctor', 'Admin') %}<a class="btn" href="{{ url_for('visit', aid=a.appointment_id) }}">{{ 'View visit' if a.has_visit else 'Open' }}</a>{% endif %}</td>
+  </tr>
+  {% else %}<tr><td colspan="5" class="muted">No appointments today.</td></tr>
+  {% endfor %}
+</table>
+{% if user.role in ('Admin', 'Receptionist') %}
+<p style="margin-top:16px"><a class="btn primary" href="{{ url_for('patient_new') }}">+ Register patient</a>
+<a class="btn primary" href="{{ url_for('appointment_new') }}">+ Book appointment</a></p>
+{% endif %}
+{% endblock %}

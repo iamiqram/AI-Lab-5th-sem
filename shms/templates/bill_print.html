@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Bill #{{ b.bill_id }}{% endblock %}
+{% block content %}
+<div class="card" style="max-width:720px;margin:0 auto">
+  <div class="noprint" style="text-align:right"><button class="primary" onclick="window.print()">Print / Save as PDF</button></div>
+  <h1 style="text-align:center">City Care Hospital</h1>
+  <p style="text-align:center" class="muted">Learning project - sample bill</p>
+  <p><b>Bill no:</b> #{{ b.bill_id }} &nbsp; <b>Visit date:</b> {{ b.date }} {{ b.time_slot }}<br>
+     <b>Patient:</b> {{ b.patient_name }} (ID {{ b.patient_id }}) &nbsp; <b>Phone:</b> {{ b.patient_phone }}<br>
+     <b>Doctor:</b> {{ b.doctor_name }} ({{ b.specialization }})</p>
+  <table>
+    <tr><th>Description</th><th style="text-align:right">Amount</th></tr>
+    {% for i in items %}<tr><td>{{ i.description }}</td><td style="text-align:right">{{ i.amount|money }}</td></tr>{% endfor %}
+    <tr><td style="text-align:right">Subtotal</td><td style="text-align:right">{{ subtotal|money }}</td></tr>
+    <tr><td style="text-align:right">Discount</td><td style="text-align:right">- {{ b.discount|money }}</td></tr>
+    <tr><th style="text-align:right">Total</th><th style="text-align:right">{{ b.total_amount|money }}</th></tr>
+  </table>
+  <p><b>Status:</b> {{ b.status }}{% if b.status == 'Paid' %} ({{ b.payment_method }}, {{ b.paid_at }}){% endif %}</p>
+</div>
+{% endblock %}
